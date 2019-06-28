@@ -5,13 +5,16 @@
 // application, and proxies your web application to
 // form a single website out of two separate servers.
 const crypto = require('crypto')
-  
+
 function compareDashboardHash (hashedToken, accountid, sessionid) {
+  if (!process.env.APPLICATION_SERVER_TOKEN) {
+    return false
+  }
   let expected
   if (accountid) {
     expected = `${process.env.APPLICATION_SERVER_TOKEN}/${accountid}/${sessionid}`
   } else {
-     expected = process.env.APPLICATION_SERVER_TOKEN
+    expected = process.env.APPLICATION_SERVER_TOKEN
   }
   const sha = crypto.createHash('sha256')
   const expectedHash = sha.update(expected).digest('hex')
@@ -33,7 +36,7 @@ module.exports = function (req, res, next) {
     let n = 0
     while (true) {
       n++
-      if (!process.env[`AUTHORIZE_APP_STORE_${n}`]) {  
+      if (!process.env[`AUTHORIZE_APP_STORE_${n}`]) {
         break
       }
       if (process.env[`AUTHORIZE_APP_STORE_${n}`] !== domain) {
