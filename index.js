@@ -36,7 +36,8 @@ module.exports = function (req, res, next) {
       if (!process.env[`AUTHORIZE_APP_STORE_${n}`]) {
         break
       }
-      if (process.env[`AUTHORIZE_APP_STORE_${n}`] !== domain) {
+      if (process.env[`AUTHORIZE_APP_STORE_${n}`] !== `https://${domain}` &&
+          process.env[`AUTHORIZE_APP_STORE_${n}`] !== `http://${domain}`) {
         continue
       }
       res.statusCode = 200
