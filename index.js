@@ -29,10 +29,7 @@ module.exports = function (req, res, next) {
   // have their own claim process and tokens.
   if (req.url.indexOf('/authorized-app-stores/') === 0) {
     let domain = req.url.substring('/authorized-app-stores/'.length)
-    const q = domain.indexOf('?')
-    if (q > -1) {
-      domain = domain.substring(0, q)
-    }
+    domain = domain.substring(0, domain.lastIndexOf('.txt'))
     let n = 0
     while (true) {
       n++
