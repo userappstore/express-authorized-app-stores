@@ -17,6 +17,7 @@
     "test": "NODE_ENV=testing mocha node_modules/@userappstore/dashboard/src --recursive --timeout 480000 --slow 480000"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "redis": "^2.8.0"
   },
   "bugs": {
