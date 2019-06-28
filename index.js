@@ -9,7 +9,7 @@ const crypto = require('crypto')
 function compareDashboardHash (hashedToken, accountid, sessionid) {
   let expected
   if (accountid) {
-    expected += `${process.env.APPLICATION_SERVER_TOKEN}/${accountid}/${sessionid}`
+    expected = `${process.env.APPLICATION_SERVER_TOKEN}/${accountid}/${sessionid}`
   } else {
      expected = process.env.APPLICATION_SERVER_TOKEN
   }
@@ -25,13 +25,14 @@ module.exports = function (req, res, next) {
   // authorize multiple app stores, they will each
   // have their own claim process and tokens.
   if (req.url.indexOf('/authorized-app-stores/') === 0) {
-    var domain = req.url.substring('/authorized-app-stores/'.length)
-    var q = domain.indexOf('?')
+    let domain = req.url.substring('/authorized-app-stores/'.length)
+    const q = domain.indexOf('?')
     if (q > -1) {
       domain = domain.substring(0, q)
     }
-    let n = 1
+    let n = 0
     while (true) {
+      n++
       if (!process.env[`AUTHORIZE_APP_STORE_${n}`]) {  
         break
       }
