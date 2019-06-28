@@ -4,7 +4,6 @@
 // Dashboard provides user accounts for your web
 // application, and proxies your web application to
 // form a single website out of two separate servers.
-const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
   
 function compareDashboardHash (hashedToken, accountid, sessionid) {
