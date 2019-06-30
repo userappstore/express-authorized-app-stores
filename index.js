@@ -7,17 +7,28 @@
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 
-function compareDashboardHash(req, dashboardServer, applicationServerToken) {
+function compareDashboardHash(req, dashboardServer, applicationServerToken, callback) {
+  if (!callback && applicationServerToken) {
+    callback = applicationServerToken
+    applicationServerToken = null
+  } else if (!callback && dashboardServer) {
+    callback = dashboardServer
+    dashboardServer = null
+    applicationServerToken = null
+  }
   if (!req.headers['x-dashboard-server']) {
-    return false
+    return callback(null, req)
   }
   dashboardServer = dashboardServer || process.env.DASHBOARD_SERVER
+  if (!dashboardServer) {
+    return callback(null, req)
+  }
   if (req.headers['x-dashboard-server'] !== dashboardServer) {
-    return false
+    return callback(null, req)
   }
   applicationServerToken = applicationServerToken || process.env.APPLICATION_SERVER_TOKEN
   if (!applicationServerToken) {
-    return false
+    return callback(null, req)
   }
   let expected
   if (!req.headers['x-accountid']) {
@@ -27,14 +38,24 @@ function compareDashboardHash(req, dashboardServer, applicationServerToken) {
   }
   const sha = crypto.createHash('sha256')
   const expectedHash = sha.update(expected).digest('hex')
-  req.dashboardServer = bcrypt.compare(expectedHash, hashedToken, callback)
-  if (req.dashboardServer) {
-    req.accountid = req.headers['x-accountid']
-    req.sessionid
-  }
+  return bcrypt.compare(expectedHash, req.headers['x-dashboard-token'], (error, match) => {
+    req.dashboardServer = match
+    if (match) {
+      req.dashboardServer = true
+      req.accountid = req.headers['x-accountid']
+      req.sessionid = req.headers['x-sessionid']
+      if (req.headers['x-organizationid']) {
+        req.organizationid = req.headers['x-organizationid']
+      }
+      if (req.headers['x-installid']) {
+        req.installid = req.headers['x-installid']
+      }
+    }
+    return callback(null, req)
+  })
 }
 
-module.exports = function (req, res, next) {
+module.exports = (req, res, next) => {
   // Dashboard software can be published or imported 
   // to app stores like userappstore.com, to claim
   // ownership a token must be published.  You can
@@ -61,27 +82,25 @@ module.exports = function (req, res, next) {
   // Whenever your Dashboard server requests something the
   // request headers will a contain a signature you can 
   // verify, identifying the user and their session.
-  compareDashboardHash(req)
-  // When an app store requests something its Dashboard
-  // server credentials will be used
-  if (!req.dashboardServer) {
-    let n = 0
-    while (true) {
-      n++
+  return compareDashboardHash(req, (_, req) => {
+    // When an app store requests something its Dashboard
+    // server credentials will be used
+    if (req.dashboardServer) {
+      return next()
+    }
+    function nextAppStore(n) {
       if (!process.env[`AUTHORIZE_APP_STORE_${n}`]) {
-        break
+        return next()
       }
       const dashboardServer = process.env[`AUTHORIZE_APP_STORE_${n}`]
       const applicationServerToken = process.env[`APPLICATION_SERVER_${n}_TOKEN`]
-      compareDashboardHash(req, dashboardServer, applicationServerToken)
-      if (req.dashboardServer) {
-        break
-      }
+      return compareDashboardHash(req, dashboardServer, applicationServerToken, (_, req) => {
+        if (req.dashboardServer) {
+          return next()
+        }
+        return nextAppStore(n + 1)
+      })
     }
-    if (!req.dashboardServer) {
-      res.statusCode = 404
-      return res.end()
-    }
-  }
-  return next()
+    return nextAppStore(1)
+  })
 }
