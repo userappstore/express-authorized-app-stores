@@ -76,7 +76,8 @@ module.exports = (req, res, next) => {
       }
       res.statusCode = 200
       res.setHeader('content-type', 'text/plain')
-      return res.end(process.env[`AUTHORIZE_APP_STORE_${n}_TOKEN`])
+      res.end(process.env[`AUTHORIZE_APP_STORE_${n}_TOKEN`])
+      return next()
     }
   }
   // Whenever your Dashboard server requests something the
