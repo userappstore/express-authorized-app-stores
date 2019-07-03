@@ -39,17 +39,8 @@ function compareDashboardHash(req, dashboardServer, applicationServerToken, call
   const sha = crypto.createHash('sha256')
   const expectedHash = sha.update(expected).digest('hex')
   return bcrypt.compare(expectedHash, req.headers['x-dashboard-token'], (error, match) => {
-    req.dashboardServer = match
     if (match) {
-      req.dashboardServer = true
-      req.accountid = req.headers['x-accountid']
-      req.sessionid = req.headers['x-sessionid']
-      if (req.headers['x-organizationid']) {
-        req.organizationid = req.headers['x-organizationid']
-      }
-      if (req.headers['x-installid']) {
-        req.installid = req.headers['x-installid']
-      }
+      req.verified = true
     }
     return callback(null, req)
   })
@@ -80,9 +71,28 @@ module.exports = (req, res, next) => {
       return next()
     }
   }
+  if (!req.headers['x-dashboard-server']) {
+    return next()
+  }
   // Whenever your Dashboard server requests something the
   // request headers will a contain a signature you can 
   // verify, identifying the user and their session.
+  req.dashboard = req.headers[['x-dashboard-server']]
+  if (req.headers['x-accountid']) {
+    req.accountid = req.headers['x-accountid']
+  }
+  if (req.headers['x-sessionid']) {
+    req.sessionid = req.headers['x-sessionid']
+  }
+  if (req.headers['x-organizationid']) {
+    req.organizationid = req.headers['x-organizationid']
+  }
+  if (req.headers['x-installid']) {
+    req.installid = req.headers['x-installid']
+  }
+  if (req.headers['x-subscriptionid']) {
+    req.subscriptionid = req.headers['x-subscriptionid']
+  }
   return compareDashboardHash(req, (_, req) => {
     // When an app store requests something its Dashboard
     // server credentials will be used
