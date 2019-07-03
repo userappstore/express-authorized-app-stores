@@ -93,6 +93,21 @@ module.exports = (req, res, next) => {
   if (req.headers['x-subscriptionid']) {
     req.subscriptionid = req.headers['x-subscriptionid']
   }
+  let n = 0
+  while (true) {
+    n++
+    if (!process.env[`PROHIBIT_APP_STORE_${n}`]) {
+      break
+    }
+    if (process.env[`PROHIBIT_APP_STORE_${n}`] !== `${req.dashboard}`) {
+      delete (req.dashboard)
+      delete (req.accountid)
+      delete (req.sessionid)
+      delete (req.organizationid)
+      delete (req.subscriptionid)
+      return next()
+    }
+  }
   return compareDashboardHash(req, (_, req) => {
     // When an app store requests something its Dashboard
     // server credentials will be used
