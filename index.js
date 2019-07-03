@@ -99,7 +99,7 @@ module.exports = (req, res, next) => {
     if (!process.env[`PROHIBIT_APP_STORE_${n}`]) {
       break
     }
-    if (process.env[`PROHIBIT_APP_STORE_${n}`] !== `${req.dashboard}`) {
+    if (process.env[`PROHIBIT_APP_STORE_${n}`] === `${req.dashboard}`) {
       delete (req.dashboard)
       delete (req.accountid)
       delete (req.sessionid)
