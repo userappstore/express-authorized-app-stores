@@ -1,9 +1,3 @@
-// --------------------------------------------------
-// Application server for Dashboard
-// --------------------------------------------------
-// Dashboard provides user accounts for your web
-// application, and proxies your web application to
-// form a single website out of two separate servers.
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 
@@ -41,6 +35,25 @@ function compareDashboardHash(req, dashboardServer, applicationServerToken, call
   return bcrypt.compare(expectedHash, req.headers['x-dashboard-token'], (error, match) => {
     if (match) {
       req.verified = true
+      req.dashboard = req.headers[['x-dashboard-server']]
+      for (const key in req.headers) {
+        if (!key.startsWith('x-') || !key.endsWith('id')) {
+          continue
+        }
+        let name = key.substring(2)
+        if (name.indexOf('-') > -1) {
+          const nameParts = name.split('-')
+          name = ''
+          for (const part in nameParts) {
+            if (name) {
+              name += part.substring(0, 1).toUpperCase() + part.substring(1)
+            } else {
+              name = part
+            }
+          }
+        }
+        req[name] = req.headers[key]
+      }
     }
     return callback(null, req)
   })
@@ -74,25 +87,6 @@ module.exports = (req, res, next) => {
   if (!req.headers['x-dashboard-server']) {
     return next()
   }
-  // Whenever your Dashboard server requests something the
-  // request headers will a contain a signature you can 
-  // verify, identifying the user and their session.
-  req.dashboard = req.headers[['x-dashboard-server']]
-  if (req.headers['x-accountid']) {
-    req.accountid = req.headers['x-accountid']
-  }
-  if (req.headers['x-sessionid']) {
-    req.sessionid = req.headers['x-sessionid']
-  }
-  if (req.headers['x-organizationid']) {
-    req.organizationid = req.headers['x-organizationid']
-  }
-  if (req.headers['x-installid']) {
-    req.installid = req.headers['x-installid']
-  }
-  if (req.headers['x-subscriptionid']) {
-    req.subscriptionid = req.headers['x-subscriptionid']
-  }
   let n = 0
   while (true) {
     n++
@@ -100,11 +94,6 @@ module.exports = (req, res, next) => {
       break
     }
     if (process.env[`PROHIBIT_APP_STORE_${n}`] === `${req.dashboard}`) {
-      delete (req.dashboard)
-      delete (req.accountid)
-      delete (req.sessionid)
-      delete (req.organizationid)
-      delete (req.subscriptionid)
       return next()
     }
   }

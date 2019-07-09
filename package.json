@@ -1,27 +1,22 @@
 {
-  "name": "@userappstore/express-application-server",
+  "name": "@userappstore/express-authorized-app-stores",
   "version": "1.0.0",
   "main": "index.js",
-  "description": "Express middleware for Dashboard application servers",
+  "description": "Express middleware for authorizing app stores",
   "engine": {
     "node": "8.1.14",
     "npm": "5.0.3"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/userappstore/express-application-server.git"
+    "url": "git://github.com/userappstore/express-authorized-app-stores.git"
   },
   "license": "UNLICENSED",
-  "scripts": {
-    "start": "node main.js",
-    "test": "NODE_ENV=testing mocha node_modules/@userappstore/dashboard/src --recursive --timeout 480000 --slow 480000"
-  },
   "dependencies": {
     "bcryptjs": "^2.4.3"
   },
   "bugs": {
-    "url": "https://github.com/userappstore/express-application-server/issues"
+    "url": "https://github.com/userappstore/express-authorized-app-stores/issues"
   },
-  "homepage": "https://github.com/userappstore/express-application-server#readme",
-  "author": ""
+  "homepage": "https://github.com/userappstore/express-authorized-app-stores"
 }
