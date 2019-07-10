@@ -23,7 +23,7 @@ This middleware can also determine if the request came from your own [Dashboard]
 
 ## The end result
 
-If the request came from a recognized app store or your own Dashboard server these properties will be appended to the `request` object:
+If the request came from a recognized app store or your own Dashboard server these properties will be appended to the `request` object, transferred from the request headers.
 
     req.verified = true
     req.dashboardServer = "https://yours_or_app_store"
